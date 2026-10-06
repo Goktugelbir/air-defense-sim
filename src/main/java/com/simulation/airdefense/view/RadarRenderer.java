@@ -9,6 +9,9 @@ import com.simulation.airdefense.simulation.SimulationState;
 import javafx.geometry.VPos;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.CycleMethod;
+import javafx.scene.paint.RadialGradient;
+import javafx.scene.paint.Stop;
 import javafx.scene.shape.ArcType;
 import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.text.Font;
@@ -27,15 +30,16 @@ import java.util.Locale;
 public final class RadarRenderer {
 
     /** Görüntülenen dünya yarıçapının radar menziline oranı (menzil dışındaki hedefler de görünsün). */
-    public static final double VIEW_EXTENT_FACTOR = 1.25;
+    public static final double VIEW_EXTENT_FACTOR = 1.14;
     /** Seçili hedef için ileri tahmin süresi (s). */
     private static final double PREDICTION_SECONDS = 30.0;
     private static final double PREDICTION_MARK_INTERVAL = 10.0;
     private static final double TARGET_SIZE = 7.0;
     private static final double HEADING_LINE_PX = 18.0;
-    private static final int SWEEP_SLICES = 36;
-    private static final double SWEEP_TRAIL_DEG = 72.0;
-    private static final double SWEEP_MAX_ALPHA = 0.30;
+    private static final int SWEEP_SLICES = 60;
+    private static final double SWEEP_TRAIL_DEG = 90.0;
+    private static final double SWEEP_MAX_ALPHA = 0.32;
+    private static final double GLOW_RADIUS = 13.0;
     private static final int MAX_LABELS = 128;
     private static final double LABEL_CHAR_WIDTH = 6.0;
     private static final double LABEL_HEIGHT = 12.0;
@@ -65,7 +69,13 @@ public final class RadarRenderer {
     private static final Font LABEL_FONT = Font.font("Consolas", 10);
     private static final Font HUD_FONT = Font.font("Consolas", FontWeight.BOLD, 12);
     private static final Font OVERLAY_FONT = Font.font("Consolas", FontWeight.BOLD, 26);
-    private static final Font COMPASS_FONT = Font.font("Consolas", FontWeight.BOLD, 12);
+    private static final Font COMPASS_FONT = Font.font("Consolas", FontWeight.BOLD, 13);
+    private static final Font BEARING_FONT = Font.font("Consolas", 9);
+    private static final Stop[] SCOPE_STOPS = {
+            new Stop(0.0, Color.web("#0f2a26")),
+            new Stop(0.65, Color.web("#0b1a1b")),
+            new Stop(1.0, Color.web("#081114"))
+    };
 
     private static final double[] DASH_SHORT = {4, 4};
     private static final double[] DASH_LONG = {8, 6};
@@ -160,6 +170,10 @@ public final class RadarRenderer {
         double cy = m.getCenterY();
         double rangePx = m.toPixels(range);
 
+        // Radar camı: merkezde hafif yeşil ışıma, kenara doğru koyulaşan radyal gradyan
+        gc.setFill(new RadialGradient(0, 0, cx, cy, rangePx, false, CycleMethod.NO_CYCLE, SCOPE_STOPS));
+        gc.fillOval(cx - rangePx, cy - rangePx, rangePx * 2, rangePx * 2);
+
         gc.setStroke(GRID);
         gc.setLineWidth(1);
 
@@ -184,13 +198,39 @@ public final class RadarRenderer {
             gc.fillText(formatDistance(r), cx + 4, cy - px - 1);
         }
 
+        // Kerteriz işaretleri: her 5°'de kısa, her 30°'de uzun çizgi ve derece etiketi
+        gc.setLineWidth(1);
+        gc.setFont(BEARING_FONT);
+        gc.setTextAlign(TextAlignment.CENTER);
+        gc.setTextBaseline(VPos.CENTER);
+        for (int deg = 0; deg < 360; deg += 5) {
+            double rad = Math.toRadians(deg);
+            double sin = Math.sin(rad);
+            double cos = Math.cos(rad);
+            boolean major = deg % 30 == 0;
+            double inner = rangePx + 2;
+            double outer = rangePx + (major ? 9 : deg % 10 == 0 ? 6 : 4);
+            gc.setGlobalAlpha(major ? 0.7 : 0.35);
+            gc.strokeLine(cx + sin * inner, cy - cos * inner, cx + sin * outer, cy - cos * outer);
+            if (major && deg % 90 != 0) {
+                double lr = rangePx + 20;
+                gc.setGlobalAlpha(0.55);
+                gc.setFill(GRID_TEXT);
+                gc.fillText("%03d".formatted(deg), cx + sin * lr, cy - cos * lr);
+            }
+        }
+        gc.setTextAlign(TextAlignment.LEFT);
+        gc.setTextBaseline(VPos.BOTTOM);
+        gc.setFont(RING_FONT);
+
         // Menzil sınırı
         gc.setGlobalAlpha(0.55);
         gc.setLineWidth(1.5);
         gc.strokeOval(cx - rangePx, cy - rangePx, rangePx * 2, rangePx * 2);
         gc.setGlobalAlpha(0.85);
         gc.setFill(GRID_TEXT);
-        gc.fillText(formatDistance(range), cx + 4, cy - rangePx - 1);
+        gc.setTextBaseline(VPos.TOP);
+        gc.fillText(formatDistance(range), cx + 4, cy - rangePx + 2);
 
         // Angajman menzili
         if (engagementRange < range) {
@@ -212,12 +252,12 @@ public final class RadarRenderer {
         gc.setLineDashes((double[]) null);
 
         // Pusula
-        gc.setGlobalAlpha(0.7);
+        gc.setGlobalAlpha(0.9);
         gc.setFill(GRID_TEXT);
         gc.setFont(COMPASS_FONT);
         gc.setTextAlign(TextAlignment.CENTER);
         gc.setTextBaseline(VPos.CENTER);
-        double off = rangePx + 12;
+        double off = rangePx + 20;
         gc.fillText("K", cx, cy - off);
         gc.fillText("G", cx, cy + off);
         gc.fillText("D", cx + off, cy);
@@ -236,13 +276,19 @@ public final class RadarRenderer {
             double alpha = SWEEP_MAX_ALPHA * (1.0 - (double) k / SWEEP_SLICES);
             gc.setGlobalAlpha(alpha * alpha / SWEEP_MAX_ALPHA);
             double startFx = 90.0 - (sweepAngle - k * slice);
-            gc.fillArc(cx - r, cy - r, r * 2, r * 2, startFx, slice + 0.4, ArcType.ROUND);
+            gc.fillArc(cx - r, cy - r, r * 2, r * 2, startFx, slice, ArcType.ROUND);
         }
         double rad = Math.toRadians(sweepAngle);
-        gc.setGlobalAlpha(0.9);
+        double ex = cx + Math.sin(rad) * r;
+        double ey = cy - Math.cos(rad) * r;
         gc.setStroke(SWEEP);
+        // Işıma: geniş ve soluk çizginin üstüne ince ve parlak çizgi
+        gc.setGlobalAlpha(0.12);
+        gc.setLineWidth(8);
+        gc.strokeLine(cx, cy, ex, ey);
+        gc.setGlobalAlpha(0.95);
         gc.setLineWidth(2);
-        gc.strokeLine(cx, cy, cx + Math.sin(rad) * r, cy - Math.cos(rad) * r);
+        gc.strokeLine(cx, cy, ex, ey);
         gc.setGlobalAlpha(1.0);
     }
 
@@ -303,6 +349,13 @@ public final class RadarRenderer {
         double headingRad = Math.toRadians(t.heading());
         double dirX = Math.sin(headingRad);
         double dirY = -Math.cos(headingRad);
+
+        // Algılanmış hedefin etrafında hafif ışıma
+        if (t.detected()) {
+            gc.setFill(color);
+            gc.setGlobalAlpha(0.16);
+            gc.fillOval(sx - GLOW_RADIUS, sy - GLOW_RADIUS, GLOW_RADIUS * 2, GLOW_RADIUS * 2);
+        }
 
         // Yön çizgisi
         gc.setStroke(color);

@@ -51,7 +51,7 @@ public final class MainController {
     private static final double PICK_TOLERANCE_PX = 14.0;
     private static final long PANEL_REFRESH_NANOS = 100_000_000L;
     private static final long FPS_WINDOW_NANOS = 500_000_000L;
-    private static final double LOG_PANEL_HEIGHT = 190;
+    private static final double LOG_PANEL_HEIGHT = 150;
     private static final double SIDE_PANEL_WIDTH = 300;
 
     private final SimulationConfig config = SimulationConfig.defaults();

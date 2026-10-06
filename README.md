@@ -1,17 +1,17 @@
 # Akıllı Hava Savunma ve İHA Sürüsü Simülasyonu
 
-> **Taslak README.** Birlikte düzenlenecek.
-
 Java 21 ve JavaFX 21 ile yazılmış, **eğitim ve simülasyon amaçlı** bir masaüstü uygulaması. Radar ekranında farklı türde İHA'lar ve bir İHA sürüsü hareket eder. Radar bu hedefleri tarayarak algılar. Sistem her hedef için bir tehdit skoru hesaplar, hedefleri önceliklendirir ve soyut bir savunma durum makinesiyle karar sürecini görselleştirir.
 
 > ⚠️ Bu proje gerçek bir askeri sistemin modeli değildir. "Savunma" kısmı soyut bir durum makinesi ve olasılıksal bir karar modeli olarak kurgulanmıştır. Gerçek silah, balistik ya da güdüm hesabı içermez.
+
+![Yoğun Saldırı senaryosu: iki sürü, karışık hedefler ve savunmanın kilitlendiği öncelikli hedef](docs/screenshot.png)
 
 ---
 
 ## Özellikler
 
-- Dönen sweep'li radar ekranı: menzil halkaları, iz efekti, algılama anında "ping"
-- 4 hedef türü, her biri ayrı şekille çizilir: **Drone** (üçgen), **Fast Drone** (elmas), **Maneuvering Drone** (kare), **Decoy** (halka)
+- Dönen sweep'li radar ekranı: menzil halkaları, kerteriz (derece) halkası, iz efekti, algılama anında "ping"
+- 4 hedef türü, her biri ayrı şekille çizilir: **İHA** (üçgen), **Hızlı İHA** (elmas), **Manevralı İHA** (kare), **Yem / Decoy** (halka)
 - **Boids** algoritmasıyla hareket eden ve periyodik olarak ikiye bölünüp iki yandan yaklaşan İHA sürüsü
 - 5 bileşenli, ağırlıklı **tehdit skoru**. Seçili hedefin panelinde bileşen çubukları gösterilir.
 - Comparator zinciriyle **önceliklendirme** ve ilk 5 listesi
@@ -117,7 +117,7 @@ Dünya metre cinsindendir ve radar merkezi (0, 0) noktasındadır. +x doğuyu, +
 
 ### Radar algılama
 
-Bir hedef **menzil içindeyse ve son tick'te sweep çizgisi hedefin kerterizinden geçtiyse** algılanır. Böylece animasyon ile algılama mantığı tutarlı kalır. Sweep 4 saniyede tam tur atar. Algılanmış bir hedef menzil dışına çıkarsa `TARGET LOST` olayı yayınlanır.
+Bir hedef **menzil içindeyse ve son tick'te sweep çizgisi hedefin kerterizinden geçtiyse** algılanır. Böylece animasyon ile algılama mantığı tutarlı kalır. Sweep 4 saniyede tam tur atar. Algılanmış bir hedef menzil dışına çıkarsa `TARGET_LOST` olayı yayınlanır ve hedef **KAYIP** olarak işaretlenir.
 
 ### Tehdit skoru
 
@@ -131,9 +131,9 @@ Threat Score = 100 × Σ (ağırlık_i × bileşen_i)        Σ ağırlık = 1
 | speed | `hız / 150 m/s` | 0.15 |
 | direction | `max(0, cos θ)`: hız vektörü ile merkeze olan vektörün kosinüs benzerliği | 0.20 |
 | timeToImpact | `1 − TTI / 120 s`, burada `TTI = mesafe / (hız · cos θ)` | 0.20 |
-| type | Drone 0.60, Fast 0.85, Maneuvering 0.80, Decoy 0.10 | 0.15 |
+| type | İHA 0.60, Hızlı İHA 0.85, Manevralı İHA 0.80, Yem 0.10 | 0.15 |
 
-Seviyeler: `0–30 LOW`, `31–70 MEDIUM`, `71–100 HIGH`. Skor eşiğin etrafında salınırken seviyenin sürekli değişmemesi için 3 puanlık bir histerezis uygulanır.
+Seviyeler: `0–30 LOW` (DÜŞÜK), `31–70 MEDIUM` (ORTA), `71–100 HIGH` (YÜKSEK). Skor eşiğin etrafında salınırken seviyenin sürekli değişmemesi için 3 puanlık bir histerezis uygulanır.
 
 ### Önceliklendirme
 
@@ -164,7 +164,9 @@ ENGAGING ──(0.6 s, olasılıksal sonuç)──▶ COOLDOWN (1.2 s)
 COOLDOWN ──(hedef hâlâ geçerli)──▶ TRACKING  |  ──(değil)──▶ IDLE
 ```
 
-Başarı olasılıkları `DefenseConfig` içinde tutulur: temel %70, hızlı hedef %45, manevralı hedef %50. Başarısız denemeden sonra cooldown süresi beklenir ve hedef yeniden denenir. Takip sırasında skoru belirgin şekilde daha yüksek bir hedef çıkarsa (15+ puan) hedef değiştirilir. Merkeze 100 m'den fazla yaklaşan hedef **ESCAPED** sayılır.
+Başarı olasılıkları `DefenseConfig` içinde tutulur: temel %70, hızlı hedef %45, manevralı hedef %50. Başarısız denemeden sonra cooldown süresi beklenir ve hedef yeniden denenir. Takip sırasında skoru belirgin şekilde daha yüksek bir hedef çıkarsa (15+ puan) hedef değiştirilir. Merkeze 100 m'den fazla yaklaşan hedef **ESCAPED** (SIZDI) sayılır.
+
+Arayüzde durumlar Türkçe gösterilir: `IDLE` BEKLEMEDE, `SELECTING` HEDEF SEÇİYOR, `TRACKING` TAKİP, `ENGAGING` ANGAJMAN, `COOLDOWN` SOĞUMA.
 
 ---
 
@@ -181,8 +183,15 @@ Başarı olasılıkları `DefenseConfig` içinde tutulur: temel %70, hızlı hed
 
 ## Testler
 
-`src/test/java/com/simulation/airdefense/` altında JUnit 5 ile yazılmış 41 test var:
+`src/test/java/com/simulation/airdefense/` altında JUnit 5 ile yazılmış 43 test var:
 
 - `RadarTest`: menzil içi/dışı, sınır değeri, radar kapalıyken algılama, sweep'in hedefin üzerinden geçmesi, kuzeyde 360°→0° geçişi
-- `ThreatAssessmentServiceTest`: 0–100 aralığı (5000 rastgele hedef), seviye eşikleri, histerezis, Decoy < Drone, ağırlıklı toplamın doğruluğu, paralel ve sıralı hesabın aynı sonucu vermesi
+- `ThreatAssessmentServiceTest`: 0–100 aralığı (5000 rastgele hedef), seviye eşikleri, histerezis, Yem < İHA, ağırlıklı toplamın doğruluğu, paralel ve sıralı hesabın aynı sonucu vermesi
 - `PriorityServiceTest`: skor sıralaması, eşitlikte TTI ve mesafe, sonsuz TTI, filtreleme, değiştirilemez liste
+- `SimulationEngineTest`: Tek Hedef senaryosunun arayüzsüz sonuna kadar çalışıp her hedefin bir sonuca (etkisiz / sızdı / alandan çıktı) bağlanması; Rastgele Saldırı senaryosunun aynı seed ile 16x ve 32x hızda birebir aynı sonucu vermesi
+
+---
+
+## Geliştirici
+
+[Goktugelbir](https://github.com/Goktugelbir)
