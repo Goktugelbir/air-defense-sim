@@ -1,0 +1,383 @@
+/* =========================================================================
+   Air Defense & UAV Swarm Simulation — dark radar theme
+   ========================================================================= */
+
+.root {
+    -bg: #0a0f14;
+    -panel: #0f161d;
+    -card: #131d26;
+    -card-border: #1d2b37;
+    -accent: #20ffb4;
+    -accent-dim: #14a87a;
+    -cyan: #5ff7ff;
+    -text: #d6e2ea;
+    -muted: #7d8f9c;
+    -low: #39d353;
+    -medium: #f2cc0c;
+    -high: #ff4d4d;
+    -orange: #ff9f1c;
+
+    -fx-font-family: "Segoe UI", "Inter", sans-serif;
+    -fx-font-size: 12px;
+    -fx-base: #131d26;
+    -fx-background: -bg;
+    -fx-control-inner-background: #0d141a;
+    -fx-accent: -accent-dim;
+    -fx-focus-color: -accent-dim;
+    -fx-faint-focus-color: transparent;
+    -fx-text-fill: -text;
+}
+
+.root-pane {
+    -fx-background-color: -bg;
+}
+
+.radar-pane {
+    -fx-background-color: -bg;
+    -fx-border-color: -card-border;
+    -fx-border-width: 0 1 0 1;
+}
+
+/* ---------------------------------------------------------------- side panels */
+
+.side-scroll,
+.side-scroll > .viewport {
+    -fx-background-color: -panel;
+    -fx-background: -panel;
+}
+
+.side-scroll {
+    -fx-padding: 0;
+}
+
+.side-panel {
+    -fx-background-color: -panel;
+    -fx-padding: 10;
+}
+
+.side-scroll .side-panel .side-panel {
+    -fx-padding: 0;
+}
+
+.scroll-bar {
+    -fx-background-color: transparent;
+}
+
+.scroll-bar .thumb {
+    -fx-background-color: #24343f;
+    -fx-background-radius: 4;
+}
+
+.scroll-bar .increment-button,
+.scroll-bar .decrement-button {
+    -fx-padding: 0;
+    -fx-pref-height: 0;
+    -fx-pref-width: 0;
+}
+
+/* ---------------------------------------------------------------- cards */
+
+.card {
+    -fx-background-color: -card;
+    -fx-background-radius: 6;
+    -fx-border-color: -card-border;
+    -fx-border-radius: 6;
+    -fx-padding: 10 12 12 12;
+}
+
+.card-title {
+    -fx-text-fill: -accent;
+    -fx-font-family: "Consolas", "Courier New", monospace;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-padding: 0 0 2 0;
+}
+
+.subsection {
+    -fx-text-fill: -muted;
+    -fx-font-family: "Consolas", "Courier New", monospace;
+    -fx-font-size: 10px;
+    -fx-padding: 6 0 0 0;
+}
+
+.label {
+    -fx-text-fill: -text;
+}
+
+.key {
+    -fx-text-fill: -muted;
+}
+
+.muted {
+    -fx-text-fill: -muted;
+}
+
+.hint {
+    -fx-font-size: 10px;
+}
+
+.value-mono {
+    -fx-font-family: "Consolas", "Courier New", monospace;
+    -fx-font-size: 12px;
+}
+
+.shortcuts {
+    -fx-font-size: 11px;
+}
+
+/* State badge */
+.badge {
+    -fx-font-family: "Consolas", "Courier New", monospace;
+    -fx-font-weight: bold;
+    -fx-padding: 1 8 1 8;
+    -fx-background-radius: 10;
+    -fx-background-color: #1d2b37;
+}
+
+.badge.state-ready    { -fx-text-fill: -cyan; }
+.badge.state-running  { -fx-text-fill: #0a0f14; -fx-background-color: -accent; }
+.badge.state-paused   { -fx-text-fill: #0a0f14; -fx-background-color: -medium; }
+.badge.state-finished { -fx-text-fill: #0a0f14; -fx-background-color: -orange; }
+
+/* Stat grid */
+.stat-cell {
+    -fx-background-color: #0e161d;
+    -fx-background-radius: 4;
+    -fx-padding: 6 8 6 8;
+    -fx-border-color: transparent transparent transparent #24343f;
+    -fx-border-width: 0 0 0 3;
+}
+
+.stat-value {
+    -fx-font-family: "Consolas", "Courier New", monospace;
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+}
+
+.stat-caption {
+    -fx-text-fill: -muted;
+    -fx-font-size: 9px;
+    -fx-font-family: "Consolas", "Courier New", monospace;
+}
+
+.stat-high        { -fx-border-color: transparent transparent transparent -high; }
+.stat-high .stat-value { -fx-text-fill: -high; }
+.stat-medium      { -fx-border-color: transparent transparent transparent -medium; }
+.stat-medium .stat-value { -fx-text-fill: -medium; }
+.stat-low         { -fx-border-color: transparent transparent transparent -low; }
+.stat-low .stat-value { -fx-text-fill: -low; }
+.stat-neutralized { -fx-border-color: transparent transparent transparent -accent; }
+.stat-neutralized .stat-value { -fx-text-fill: -accent; }
+.stat-escaped     { -fx-border-color: transparent transparent transparent #ff2d55; }
+.stat-escaped .stat-value { -fx-text-fill: #ff2d55; }
+
+/* Priority */
+.priority-card {
+    -fx-border-color: #4a2f12;
+}
+
+.priority-card .card-title {
+    -fx-text-fill: -orange;
+}
+
+.priority-id {
+    -fx-font-family: "Consolas", "Courier New", monospace;
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+}
+
+.priority-score {
+    -fx-font-family: "Consolas", "Courier New", monospace;
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+}
+
+.top-row {
+    -fx-font-size: 11px;
+}
+
+.level-low    { -fx-text-fill: -low; }
+.level-medium { -fx-text-fill: -medium; }
+.level-high   { -fx-text-fill: -high; }
+
+/* Threat component bars */
+.component-bar {
+    -fx-pref-height: 10px;
+}
+
+.component-bar > .track {
+    -fx-background-color: #0b1217;
+    -fx-background-radius: 3;
+    -fx-background-insets: 0;
+}
+
+.component-bar > .bar {
+    -fx-background-color: linear-gradient(to right, -accent-dim, -accent);
+    -fx-background-radius: 3;
+    -fx-background-insets: 0;
+    -fx-padding: 4px;
+}
+
+.bar-name {
+    -fx-font-size: 11px;
+}
+
+.bar-value {
+    -fx-font-size: 11px;
+}
+
+/* ---------------------------------------------------------------- controls */
+
+.button,
+.toggle-button {
+    -fx-background-color: #1a2732;
+    -fx-background-radius: 4;
+    -fx-border-color: #26394a;
+    -fx-border-radius: 4;
+    -fx-text-fill: -text;
+    -fx-padding: 6 10 6 10;
+    -fx-cursor: hand;
+}
+
+.button:hover,
+.toggle-button:hover {
+    -fx-background-color: #213241;
+    -fx-border-color: -accent-dim;
+}
+
+.button:pressed {
+    -fx-background-color: #0f1a22;
+}
+
+.button:disabled,
+.toggle-button:disabled {
+    -fx-opacity: 0.35;
+}
+
+.btn-primary {
+    -fx-background-color: #0f3d30;
+    -fx-border-color: -accent-dim;
+    -fx-text-fill: -accent;
+    -fx-font-weight: bold;
+}
+
+.btn-primary:hover {
+    -fx-background-color: #145240;
+}
+
+.btn-danger {
+    -fx-background-color: #3a1418;
+    -fx-border-color: #7a2a33;
+    -fx-text-fill: #ff8a94;
+}
+
+.btn-danger:hover {
+    -fx-background-color: #4a1a20;
+}
+
+.toggle-button:selected {
+    -fx-background-color: -accent-dim;
+    -fx-border-color: -accent;
+    -fx-text-fill: #0a0f14;
+    -fx-font-weight: bold;
+}
+
+.check-box {
+    -fx-text-fill: -text;
+}
+
+.check-box > .box {
+    -fx-background-color: #0d141a;
+    -fx-border-color: #2c4050;
+    -fx-border-radius: 3;
+    -fx-background-radius: 3;
+}
+
+.check-box:selected > .box > .mark {
+    -fx-background-color: -accent;
+}
+
+.combo-box {
+    -fx-background-color: #1a2732;
+    -fx-border-color: #26394a;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+}
+
+.combo-box .list-cell {
+    -fx-text-fill: -text;
+    -fx-background-color: transparent;
+}
+
+.combo-box-popup .list-view {
+    -fx-background-color: #131d26;
+}
+
+.combo-box-popup .list-cell {
+    -fx-background-color: #131d26;
+    -fx-text-fill: -text;
+}
+
+.combo-box-popup .list-cell:hover,
+.combo-box-popup .list-cell:selected {
+    -fx-background-color: #1f3a32;
+}
+
+.text-field {
+    -fx-background-color: #0d141a;
+    -fx-border-color: #26394a;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+    -fx-text-fill: -text;
+    -fx-font-family: "Consolas", "Courier New", monospace;
+}
+
+.slider .track {
+    -fx-background-color: #1d2b37;
+    -fx-background-radius: 3;
+    -fx-pref-height: 4;
+}
+
+.slider .thumb {
+    -fx-background-color: -accent;
+    -fx-background-radius: 8;
+    -fx-padding: 6;
+}
+
+/* ---------------------------------------------------------------- log */
+
+.log-panel {
+    -fx-background-color: -panel;
+    -fx-border-color: -card-border;
+    -fx-border-width: 1 0 0 0;
+    -fx-padding: 6 10 8 10;
+    -fx-spacing: 4;
+}
+
+.log-list {
+    -fx-background-color: #0b1116;
+    -fx-background-radius: 4;
+    -fx-border-color: -card-border;
+    -fx-border-radius: 4;
+}
+
+.log-list .list-cell {
+    -fx-background-color: #0b1116;
+    -fx-font-family: "Consolas", "Courier New", monospace;
+    -fx-font-size: 12px;
+    -fx-padding: 1 8 1 8;
+    -fx-text-fill: -text;
+}
+
+.log-list .list-cell:filled:selected {
+    -fx-background-color: #16242e;
+}
+
+.log-list .list-cell.log-system    { -fx-text-fill: #9fb3c2; }
+.log-list .list-cell.log-info      { -fx-text-fill: #7d8f9c; }
+.log-list .list-cell.log-detection { -fx-text-fill: #5ff7ff; }
+.log-list .list-cell.log-threat    { -fx-text-fill: #f2cc0c; }
+.log-list .list-cell.log-defense   { -fx-text-fill: #ff9f1c; }
+.log-list .list-cell.log-success   { -fx-text-fill: #39d353; }
+.log-list .list-cell.log-warning   { -fx-text-fill: #ff8a65; }
+.log-list .list-cell.log-critical  { -fx-text-fill: #ff2d55; -fx-font-weight: bold; }
